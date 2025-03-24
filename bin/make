@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# This script is a wrapper for the make command. It sets the MAKEFLAGS
+/usr/bin/make TOOLPREFIX=x86_64-elf- $@

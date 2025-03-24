@@ -244,6 +244,12 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -nographic $(QEMUOPTS) -S $(QEMUGDB)
 
+docker-build:
+	docker build --platform=linux/amd64 -t xv6-build .
+
+docker-qemu-nox: docker-build
+	docker run --platform=linux/amd64 --rm -it -v $(shell pwd):/xv6 xv6-build make qemu-nox
+
 # CUT HERE
 # prepare dist for students
 # after running make dist, probably want to

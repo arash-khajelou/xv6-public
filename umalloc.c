@@ -53,28 +53,29 @@ static Header *morecore(uint nu) {
   return freep;
 }
 
-void *malloc(uint nbytes) {
-  Header *p, *prevp;
-  uint nunits;
+void *malloc(const uint requested_bytes) {
+  Header *previous_block;
 
-  nunits = (nbytes + sizeof(Header) - 1) / sizeof(Header) + 1;
-  if ((prevp = freep) == 0) {
-    base.s.ptr = freep = prevp = &base;
+  const uint required_units =
+      (requested_bytes + sizeof(Header) - 1) / sizeof(Header) + 1;
+  if ((previous_block = freep) == 0) {
+    base.s.ptr = freep = previous_block = &base;
     base.s.size = 0;
   }
-  for (p = prevp->s.ptr;; prevp = p, p = p->s.ptr) {
-    if (p->s.size >= nunits) {
-      if (p->s.size == nunits)
-        prevp->s.ptr = p->s.ptr;
+  for (Header *current_block = previous_block->s.ptr;;
+       previous_block = current_block, current_block = current_block->s.ptr) {
+    if (current_block->s.size >= required_units) {
+      if (current_block->s.size == required_units)
+        previous_block->s.ptr = current_block->s.ptr;
       else {
-        p->s.size -= nunits;
-        p += p->s.size;
-        p->s.size = nunits;
+        current_block->s.size -= required_units;
+        current_block += current_block->s.size;
+        current_block->s.size = required_units;
       }
-      freep = prevp;
-      return (void *)(p + 1);
+      freep = previous_block;
+      return (void *)(current_block + 1);
     }
-    if (p == freep)
-      if ((p = morecore(nunits)) == 0) return 0;
+    if (current_block == freep)
+      if ((current_block = morecore(required_units)) == 0) return 0;
   }
 }
